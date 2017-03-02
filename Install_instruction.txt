@@ -2,6 +2,22 @@
 -- Code verified for ns-2.35 version --
 (Document rev. 1.0, March 2, 2017)
 
+Note: when compiling ns-allinone-2.35 on Ubuntu, you could get a compilation error like in the following:
+------------------------------------------------------------------
+linkstate/ls.h:137:58: error: ‘erase’ was not declared in this scope, and no declarations were found by argument-dependent lookup at the point of instantiation [-fpermissive]
+  void eraseAll() { erase(baseMap::begin(), baseMap::end()); }
+                                                          ^
+linkstate/ls.h:137:58: note: declarations in dependent base ‘std::map<int, LsIdSeq, std::less<int>, std::allocator<std::pair<const int, LsIdSeq> > >’ are not found by unqualified lookup
+linkstate/ls.h:137:58: note: use ‘this->erase’ instead
+make: *** [linkstate/ls.o] Error 1
+Ns make failed!
+------------------------------------------------------------------
+To solve the problem you have e to edit the line number 137 of "<install_dir>/ns-allinone-2.35/ns-2.35/linkstate/ls.h" from:
+- void eraseAll() { erase(baseMap::begin(), baseMap::end()); }
+to
+- void eraseAll() { this->erase(baseMap::begin(), baseMap::end()); }
+and your ns-2 installation will be successful.
+
 -- Step 1 --
 3D environment: install M2ANET patch following the instructions placed in the directory "M2ANET".
 Verify if you have a working 3D environment running the test included.
