@@ -1,0 +1,102 @@
+-- Running position-based routing protocols in 3D environment for NS-2 --
+-- Code verified for ns-2.35 version --
+(Document rev. 1.0, March 2, 2017)
+
+-- Step 1 --
+Install M2ANET patch following the instructions placed in the directory "M2ANET".
+Verify the 3D environment running the test included.
+
+-- Step 2 --
+Copy the directory "geo" in your ns2 environment, specifically in ns-allinone-2.35/ns-2.35/
+
+-- Step 3 --
+There are some changes you need to do in order to integrate the new code inside the simulator.
+Go to "ns-2.35/common/packet.h" and find the definition of type packet_t "typedef unsigned int packet_t", where all the packet are listed. You have to add PT_GEO to this list as shown in the next code: (--> = put this new line)
+
+------------------------------------------------------------------
+-- common/packet.h --
+: ...
+: typedef unsigned int packet_t;
+: static const packet_t PT_TCP = 0;
+: ...
+: --> static const packet_t PT_GEO = 73;
+: static packet_t       PT_NTYPE = 74; // This MUST be the LAST one
+------------------------------------------------------------------
+
+Just below in the same file the is the definition of p_info class. Inside constructor we will provide a textual name for our packet type:
+
+------------------------------------------------------------------
+-- common/packet.h --
+: ...
+: p_info() {
+: name_[PT_TCP]= "tcp";
+: name_[PT_UDP]= "udp";
+: name_[PT_CBR]= "cbr";
+: /* ... much more names ... */
+: --> name_[PT_GEO]= "geo";
+: }
+------------------------------------------------------------------
+
+-- Step 4 --
+Now we need to do some changes in Tcl files. Actually we are going to add our packet type, give default values for binded attributes and provide the needed infrastructure to create wireless nodes running my GEO routing protocol.
+In ns-2.35/tcl/lib/ns-packet.tcl you must locate the next code and add GEO to the list.
+
+-----------------------------------------------------------------
+-- tcl/lib/ns-packet.tcl --
+: set protolist {
+: # Common:
+:	Common 
+:	Flags
+: ....
+: --> GEO # geographic protocol
+-----------------------------------------------------------------
+
+-- Step 5 --
+Finally we have to modify tcl/lib/ns-lib.tcl. We need to add procedures for creating a node. Our interest will be centered around creating a wireless node with GEO as routing protocol.
+The procedure node calls to the create-wireless-node procedure. This last one, among other tasks, is intended to set the routing agent for a node. We need to hack this procedure to create an instance of our GEO protocol.
+
+----------------------------------------------------------------
+-- tcl/lib/ns-lib.tcl --
+: Simulator instproc create-wireless-node args {
+: # ...
+: switch -exact $routingAgent_ {
+: GEO {
+:	set ragent [$self create-geo-agent $node]
+:	}
+: # ...
+: }
+---------------------------------------------------------------
+
+Then create-geo-agent will be coded below as shown in the next example.
+
+-- tcl/lib/ns-lib.tcl --
+In line 812 add:
+Simulator instproc create-geo-agent { node } {
+	#creo l'agente di routing Geo
+	set ragent [new Agent/GEO [$node node-addr]]
+	set addr [$node node-addr]
+	$ragent addr $addr
+	$ragent node $node
+	if [Simulator set mobile_ip_] {
+		$ragent port-dmux [$node set dmux_]
+	}
+	$node addr $addr
+	$node set ragent_ $ragent
+
+	$self at 0.0 "$ragent set-location"
+	$self at 0.0 "$ragent start"
+	return $ragent
+}
+
+-- Step 6 --
+Now everyting is implemented and we only need to compile it! To do so we will edit Makefile file by adding our object files inside OBJ CC variable as in following code.
+
+-- Makefile --
+: OBJ_CC = \
+: tools/random.o tools/rng.o tools/ranvar.o common/misc.o common/timer-handler.o \
+: # ...
+: --> geo/geo.o geo/geo_node.o geo/geo_next_node.o geo/geo_utility.o \
+: # ...
+: $(OBJ_STL)
+
+After that we can execute make and enjoy with GEO protocol.

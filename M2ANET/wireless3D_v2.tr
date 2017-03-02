@@ -1,0 +1,35 @@
+Sconfig 0.00000 tap: on snoop: rts? on errs? on
+Sconfig 0.00000 salvage: on !bd replies? on
+Sconfig 0.00000 grat error: on grat reply: on
+Sconfig 0.00000 $reply for props: on ring 0 search: on
+Sconfig 0.00000 using MOBICACHE
+s -t 10.000000000 -Hs 0 -Hd -2 -Ni 0 -Nx 100.00 -Ny 200.00 -Nz 300.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 0 -Md 0 -Ms 0 -Mt 0 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 0 -Iv 32 -Pn cbr -Pi 0 -Pf 0 -Po 0 
+SFESTs 10.081390067 _0_ 0 [0 -> 2] 1(1) to 1 [0 |1 2 ]
+r -t 10.093700459 -Hs 2 -Hd 2 -Ni 2 -Nx 700.00 -Ny 800.00 -Nz 900.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 13a -Md 2 -Ms 1 -Mt 800 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 0 -Iv 31 -Pn cbr -Pi 0 -Pf 2 -Po 0 
+s -t 15.000000000 -Hs 0 -Hd -2 -Ni 0 -Nx 100.00 -Ny 200.00 -Nz 300.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 0 -Md 0 -Ms 0 -Mt 0 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 5 -Iv 32 -Pn cbr -Pi 1 -Pf 0 -Po 0 
+SFESTs 15.000000000 _0_ 5 [0 -> 2] 1(1) to 1 [0 |1 2 ]
+r -t 15.012406392 -Hs 2 -Hd 2 -Ni 2 -Nx 700.00 -Ny 800.00 -Nz 900.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 13a -Md 2 -Ms 1 -Mt 800 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 5 -Iv 31 -Pn cbr -Pi 1 -Pf 2 -Po 0 
+M 20.00000 0 (100.00, 200.00, 300.00), (200.00, 200.00, 300.00), 10.00
+s -t 20.000000000 -Hs 0 -Hd -2 -Ni 0 -Nx 100.00 -Ny 200.00 -Nz 300.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 0 -Md 0 -Ms 0 -Mt 0 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 6 -Iv 32 -Pn cbr -Pi 2 -Pf 0 -Po 0 
+SFESTs 20.000000000 _0_ 6 [0 -> 2] 1(1) to 1 [0 |1 2 ]
+r -t 20.012166392 -Hs 2 -Hd 2 -Ni 2 -Nx 700.00 -Ny 800.00 -Nz 900.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 13a -Md 2 -Ms 1 -Mt 800 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 6 -Iv 31 -Pn cbr -Pi 2 -Pf 2 -Po 0 
+s -t 25.000000000 -Hs 0 -Hd -2 -Ni 0 -Nx 150.00 -Ny 200.00 -Nz 300.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 0 -Md 0 -Ms 0 -Mt 0 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 7 -Iv 32 -Pn cbr -Pi 3 -Pf 0 -Po 0 
+SFs 25.000000000 _0_ 7 [0 -> 2] 1(0) to 1 
+SFf 25.006080924 _1_ 7 [0 -> 2] 1 to 2
+r -t 25.012146121 -Hs 2 -Hd 2 -Ni 2 -Nx 700.00 -Ny 800.00 -Nz 900.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 13a -Md 2 -Ms 1 -Mt 800 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 7 -Iv 31 -Pn cbr -Pi 3 -Pf 2 -Po 0 
+M 30.00000 1 (400.00, 500.00, 600.00), (500.00, 500.00, 500.00), 10.00
+s -t 30.000000000 -Hs 0 -Hd -2 -Ni 0 -Nx 200.00 -Ny 200.00 -Nz 300.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 0 -Md 0 -Ms 0 -Mt 0 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 8 -Iv 32 -Pn cbr -Pi 4 -Pf 0 -Po 0 
+SFESTs 30.000000000 _0_ 8 [0 -> 2] 1(1) to 1 [0 |1 2 ]
+r -t 30.012425887 -Hs 2 -Hd 2 -Ni 2 -Nx 700.00 -Ny 800.00 -Nz 900.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 13a -Md 2 -Ms 1 -Mt 800 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 8 -Iv 31 -Pn cbr -Pi 4 -Pf 2 -Po 0 
+s -t 35.000000000 -Hs 0 -Hd -2 -Ni 0 -Nx 200.00 -Ny 200.00 -Nz 300.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 0 -Md 0 -Ms 0 -Mt 0 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 9 -Iv 32 -Pn cbr -Pi 5 -Pf 0 -Po 0 
+SFs 35.000000000 _0_ 9 [0 -> 2] 1(0) to 1 
+SFf 35.005580641 _1_ 9 [0 -> 2] 1 to 2
+r -t 35.011525862 -Hs 2 -Hd 2 -Ni 2 -Nx 700.00 -Ny 800.00 -Nz 900.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 13a -Md 2 -Ms 1 -Mt 800 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 9 -Iv 31 -Pn cbr -Pi 5 -Pf 2 -Po 0 
+M 40.00000 2 (700.00, 800.00, 900.00), (600.00, 600.00, 600.00), 10.00
+s -t 40.000000000 -Hs 0 -Hd -2 -Ni 0 -Nx 200.00 -Ny 200.00 -Nz 300.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 0 -Md 0 -Ms 0 -Mt 0 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 10 -Iv 32 -Pn cbr -Pi 6 -Pf 0 -Po 0 
+SFESTs 40.000000000 _0_ 10 [0 -> 2] 1(1) to 1 [0 |1 2 ]
+r -t 40.012245937 -Hs 2 -Hd 2 -Ni 2 -Nx 699.97 -Ny 799.93 -Nz 899.90 -Ne -1.000000 -Nl AGT -Nw --- -Ma 13a -Md 2 -Ms 1 -Mt 800 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 10 -Iv 31 -Pn cbr -Pi 6 -Pf 2 -Po 0 
+s -t 45.000000000 -Hs 0 -Hd -2 -Ni 0 -Nx 200.00 -Ny 200.00 -Nz 300.00 -Ne -1.000000 -Nl AGT -Nw --- -Ma 0 -Md 0 -Ms 0 -Mt 0 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 11 -Iv 32 -Pn cbr -Pi 7 -Pf 0 -Po 0 
+SFs 45.000000000 _0_ 11 [0 -> 2] 1(0) to 1 
+SFf 45.006060690 _1_ 11 [0 -> 2] 1 to 2
+r -t 45.011925579 -Hs 2 -Hd 2 -Ni 2 -Nx 686.61 -Ny 773.21 -Nz 859.82 -Ne -1.000000 -Nl AGT -Nw --- -Ma 13a -Md 2 -Ms 1 -Mt 800 -Is 0.0 -Id 2.0 -It cbr -Il 512 -If 0 -Ii 11 -Iv 31 -Pn cbr -Pi 7 -Pf 2 -Po 0 

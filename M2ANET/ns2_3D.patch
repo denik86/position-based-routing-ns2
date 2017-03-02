@@ -1,0 +1,727 @@
+diff -r -u -x '*~' -x '*original.c' -x '*original.h' -x '*.o' -x autoconf.h ns-2.35/common/mobilenode.cc nasir/common/mobilenode.cc
+--- ns-2.35/common/mobilenode.cc	2006-02-22 09:21:52.000000000 -0400
++++ nasir/common/mobilenode.cc	2014-01-07 22:25:11.000000000 -0400
+@@ -1,5 +1,5 @@
+ /*-*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- 
+- *
++ * hellonasir
+  * Copyright (c) 1997 Regents of the University of California.
+  * All rights reserved.
+  *
+@@ -120,7 +120,7 @@
+ {
+ 	X_ = Y_ = Z_ = speed_ = 0.0;
+ 	dX_ = dY_ = dZ_ = 0.0;
+-	destX_ = destY_ = 0.0;
++	destX_ = destY_ = destZ_ = 0.0; //nasir added destZ_
+ 
+ 	random_motion_ = 0;
+ 	base_stn_ = -1;
+@@ -284,7 +284,22 @@
+ 				return TCL_ERROR;
+ 			return TCL_OK;
+ 		}
++	} else if (argc == 6) { //nasir added 8 March
++		if(strcmp(argv[1], "setdest3d") == 0) {
++			// mobile node sedest3d x y z speed
++#ifdef DEBUG
++			fprintf(stderr, "%d - %s: calling set_destination3d()\n",
++				address_, __FUNCTION__);
++#endif
++			//fprintf(stderr, "%f :x - %f :y - %f :z - %f :speed\n", atof(argv[2]), atof(argv[3]), atof(argv[4]), atof(argv[5]));  			
++			
++			if (set_destination3d(atof(argv[2]), atof(argv[3]), 
++					    atof(argv[4]), atof(argv[5])) < 0)
++				return TCL_ERROR;
++			return TCL_OK;
++		}
+ 	}
++	
+ 	return Node::command(argc, argv);
+ }
+ 
+@@ -309,6 +324,7 @@
+ void 
+ MobileNode::start()
+ {
++	fprintf(stderr, "Start start()\n");
+ 	Scheduler& s = Scheduler::instance();
+ 
+ 	if(random_motion_ == 0) {
+@@ -318,13 +334,14 @@
+ 
+ 	assert(initialized());
+ 
+-	random_position();
++	random_position3d(); //nasir changed
+ #ifdef DEBUG
+         fprintf(stderr, "%d - %s: calling random_destination()\n",
+                 address_, __PRETTY_FUNCTION__);
+ #endif
+-	random_destination();
++	random_destination3d(); //nasir changed
+ 	s.schedule(&pos_handle_, &pos_intr_, position_update_interval_);
++	fprintf(stderr, "end start()\n");
+ }
+ 
+ void 
+@@ -334,9 +351,11 @@
+ 		return;
+ 
+ 	Scheduler& s = Scheduler::instance();
++
+ 	sprintf(log_target_->pt_->buffer(),
+-		"M %.5f %d (%.2f, %.2f, %.2f), (%.2f, %.2f), %.2f",
+-		s.clock(), address_, X_, Y_, Z_, destX_, destY_, speed_);
++		"M %.5f %d (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f), %.2f", //nasir changed
++		s.clock(), address_, X_, Y_, Z_, destX_, destY_, destZ_, speed_);//nasir changed
++
+ 	log_target_->pt_->dump();
+ }
+ 
+@@ -370,6 +389,8 @@
+ 	double maxX;
+ 	double minY;
+ 	double maxY;
++	double minZ; //nasir added
++	double maxZ; //nasir added
+ 	int recheck = 1;
+ 
+ 	assert(T_ != 0);
+@@ -378,6 +399,9 @@
+ 	maxX = T_->upperX();
+ 	minY = T_->lowerY();
+ 	maxY = T_->upperY();
++	minZ = T_->lowerZ(); //nasir added
++	maxZ = T_->upperZ(); //nasir added 
++
+ 
+ 	while (recheck) {
+ 		recheck = 0;
+@@ -397,6 +421,14 @@
+ 			Y_ = maxY- (Y_ - maxY);
+ 			recheck = 1;
+ 		}
++		if (Z_ < minZ) { //nasir added
++			Z_ = minZ + (minZ - Z_);
++			recheck = 1;
++		}
++		if (Z_ > maxZ) { //nasir added
++			Z_ = maxZ- (Z_ - maxZ);
++			recheck = 1;
++		}
+ 		if (recheck) {
+ 			fprintf(stderr, "Adjust position of node %d\n",address_);
+ 		}
+@@ -462,6 +494,106 @@
+ 	return 0;
+ }
+ 
++//nasir added 8 march
++int
++MobileNode::set_destination3d(double x, double y, double z, double s)
++{
++	//fprintf(stderr, "Start set_destination3d()\n");
++	assert(initialized());
++
++	//fprintf(stderr, "%d - %s: - %f: z after initilization \n", address_, __FUNCTION__, z);
++
++	if(x >= T_->upperX() || x <= T_->lowerX())
++		return -1;
++	if(y >= T_->upperY() || y <= T_->lowerY())
++		return -1;
++	if(z >= T_->upperZ() || z <= T_->lowerZ()) //nasir added
++	{
++		//fprintf(stderr, "%f  :T_->upperX - %f: x  \n", T_->upperZ(), z);
++		//fprintf(stderr, "%f  :T_->lowerX - %f: x  \n", T_->lowerZ(), z);
++		//fprintf(stderr, "%d - %s: after if \n", address_, __FUNCTION__);
++		return -1;
++	}
++
++//nasir	fprintf(stderr, "Before %f :X %f :X_ %f :Y %f :Y_ %f :Z %f :Z_ \n %f :destX_ %f :destY_ %f :destZ_\n %f :dX_ %f :dY_ %f :dZ_ %f :s %f : speed_ \n",x,X_,y,Y_,z,Z_,destX_,destY_,destZ_,dX_,dY_,dZ_,s,speed_);
++
++	update_position();	// figure out where we are now
++
++//nasir	fprintf(stderr, "After: X_: %f Y_: %f Z_: %f\n",X_,Y_,Z_);
++
++	//fprintf(stderr, "After %f :X %f :X_ %f :Y %f :Y_ %f :Z %f :Z_ \n %f :destX_ %f :destY_ %f :destZ_\n %f :dX_ %f :dY_ %f :dZ_ %f :s %f : speed_ \n",x,X_,y,Y_,z,Z_,destX_,destY_,destZ_,dX_,dY_,dZ_,s,speed_);
++	
++	//fprintf(stderr, "%d - %s: after update position method \n", address_, __FUNCTION__);	
++
++	destX_ = x;
++	destY_ = y;
++	destZ_ = z; //nasir added
++	speed_ = s;
++	
++//nasir	fprintf(stderr, " destX_: %f destY_: %f destZ_: %f\n",destX_,destY_,destZ_);	
++
++	dX_ = destX_ - X_;
++	dY_ = destY_ - Y_;	
++	dZ_ = 0.0;		// this isn't used, since flying isn't allowed
++	dZ_ = destZ_ - Z_; //nasir added
++
++//nasir	fprintf(stderr, " dX_: %f dY_: %f dZ_: %f\n",dX_,dY_,dZ_);	
++
++	double len;
++	
++	if (destX_ != X_ || destY_ != Y_ || destZ_ != Z_) { //nasir added destZ_ != Z_
++		// normalize dx, dy to unit len
++		len = sqrt( (dX_ * dX_) + (dY_ * dY_) + (dZ_ * dZ_)); //nasir added + (dZ_ * dZ_)
++		dX_ /= len;
++		dY_ /= len;
++		dZ_ /= len; //nasir added 
++	}
++
++//nasir	fprintf(stderr, "len: %f dX_: %f dY_: %f dZ_: %f\n",len,dX_,dY_,dZ_);	
++
++	//fprintf(stderr, "%d - %s: after dest if \n", address_, __FUNCTION__);
++  
++	position_update_time_ = Scheduler::instance().clock();
++
++#ifdef DEBUG
++	fprintf(stderr, "%d - %s: calling log_movement()\n", 
++		address_, __FUNCTION__);
++#endif
++	log_movement();
++
++	//fprintf(stderr, "%d - %s: after if \n", address_, __FUNCTION__);
++
++	/* update gridkeeper */
++	if (GridKeeper::instance()){
++		GridKeeper* gp =  GridKeeper::instance();
++		gp-> new_moves(this);
++	}                     
++
++	//fprintf(stderr, "%d - %s: after GridKeeper \n", address_, __FUNCTION__);
++
++	if (namChan_ != 0) {
++		
++		double v = speed_ * sqrt( (dX_ * dX_) + (dY_ * dY_) + (dZ_ * dZ_)); //nasir added + (dZ_ * dZ_) 
++		
++		sprintf(nwrk_,     
++			"n -t %f -s %d -x %f -y %f -z %f -U %f -V %f -W %f -T %f", //nasir added -z %f and -W %f ->added 2nd last pair
++			Scheduler::instance().clock(),
++			nodeid_,
++			X_, Y_, Z_, //nasir added Z_
++			speed_ * dX_, speed_ * dY_, speed_ * dZ_, //nasir added speed_ * dZ_,
++			( v != 0) ? len / v : 0. );   
++		namdump();         
++	}
++
++	//fprintf(stderr, "%d - %s: after namChan \n", address_, __FUNCTION__);
++	
++	//fprintf(stderr, "End set_destination3d()\n");
++
++	//fprintf(stderr, "End %f :X %f :X_ %f :Y %f :Y_ %f :Z %f :Z_ \n %f :destX_ %f :destY_ %f :destZ_\n %f :dX_ %f :dY_ %f :dZ_ %f :s %f : speed_ \n",x,X_,y,Y_,z,Z_,destX_,destY_,destZ_,dX_,dY_,dZ_,s,speed_);
++
++	return 0;
++}
++
+ 
+ 
+ void 
+@@ -477,14 +609,45 @@
+ 
+ 
+ 	// CHECK, IF THE SPEED IS 0, THEN SKIP, but usually it's not 0
++
++	//fprintf(stderr, "up: speed_: %f interval: %f now: %f p_update_time: %f\n",speed_,interval,now,position_update_time_);
++	
+ 	X_ += dX_ * (speed_ * interval);
+ 	Y_ += dY_ * (speed_ * interval);
++	Z_ += dZ_ * (speed_ * interval);//nasir added
++
++/*      //nasir added
++	if(destX_ != X_)
++          X_ = X_ + (destX_ > X_ ? 1 : -1) * (speed_ * interval);
++	if(destY_ != Y_)
++	  Y_ = Y_ + (destY_ > Y_ ? 1 : -1) * (speed_ * interval);
++	if(destZ_ != Z_)
++	  Z_ = Z_ + (destZ_ > Z_ ? 1 : -1) * (speed_ * interval);//nasir added	
++*/
+ 
+-	if ((dX_ > 0 && X_ > destX_) || (dX_ < 0 && X_ < destX_))
++	//fprintf(stderr, "up before check: X_: %f Y_: %f Z_: %f\n",X_,Y_,Z_);
++
++	if ((dX_ > 0 && X_ > destX_) || (dX_ < 0 && X_ < destX_)) 
++	{
+ 	  X_ = destX_;		// correct overshoot (slow? XXX)
+-	if ((dY_ > 0 && Y_ > destY_) || (dY_ < 0 && Y_ < destY_))
++	  //if( now > 15 && now < 20)
++	  //fprintf(stderr, "NowtX: %f ",now);
++	}
++	if ((dY_ > 0 && Y_ > destY_) || (dY_ < 0 && Y_ < destY_)) 
++	{
+ 	  Y_ = destY_;		// correct overshoot (slow? XXX)
++	  //if( now > 15 && now < 20)
++	  //fprintf(stderr, "NowtY: %f ",now);
++	}
++	if ((dZ_ > 0 && Z_ > destZ_) || (dZ_ < 0 && Z_ < destZ_)) //nasir added 
++	{
++	  Z_ = destZ_;		// correct overshoot (slow? XXX)
++	  //if( now > 15 && now < 20)
++	  //fprintf(stderr, "NowTZ: %f ",now);
++	}		
+ 	
++	//fprintf(stderr, "up after check: X_: %f Y_: %f Z_: %f\n",X_,Y_,Z_);
++
+ 	/* list based improvement */
+ 	if(oldX != X_)// || oldY != Y_)
+ 		T_->updateNodesList(this, oldX);//, oldY);
+@@ -499,6 +662,25 @@
+ 	position_update_time_ = now;
+ }
+ 
++void
++MobileNode::random_position3d() //nasir added
++{
++	fprintf(stderr, "Start random_position3d()\n");
++	if (T_ == 0) {
++		fprintf(stderr, "No TOPOLOGY assigned\n");
++		exit(1);
++	}
++
++	X_ = Random::uniform() * T_->upperX();
++	Y_ = Random::uniform() * T_->upperY();
++	Z_ = Random::uniform() * T_->upperZ();
++	//Z_ = T_->height(X_, Y_);
++
++	position_update_time_ = 0.0;
++
++	fprintf(stderr, "end random_position3d()\n");
++}
++
+ 
+ void
+ MobileNode::random_position()
+@@ -516,6 +698,26 @@
+ }
+ 
+ void
++MobileNode::random_destination3d() //nasir added
++{
++	fprintf(stderr, "Start random_destination3d()\n");
++	if (T_ == 0) {
++		fprintf(stderr, "No TOPOLOGY assigned\n");
++		exit(1);
++	}
++
++	random_speed();
++#ifdef DEBUG
++        fprintf(stderr, "%d - %s: calling set_destination()\n",
++                address_, __FUNCTION__);
++#endif
++	(void) set_destination3d(Random::uniform() * T_->upperX(),
++                               Random::uniform() * T_->upperY(), Random::uniform() * T_->upperZ(),
++                               speed_);
++	fprintf(stderr, "End random_destination3d()\n");
++}
++
++void
+ MobileNode::random_destination()
+ {
+ 	if (T_ == 0) {
+diff -r -u -x '*~' -x '*original.c' -x '*original.h' -x '*.o' -x autoconf.h ns-2.35/common/mobilenode.h nasir/common/mobilenode.h
+--- ns-2.35/common/mobilenode.h	2006-02-21 11:20:18.000000000 -0400
++++ nasir/common/mobilenode.h	2013-04-15 16:11:44.000000000 -0300
+@@ -132,7 +132,9 @@
+ 		update_position();  *x = X_; *y = Y_; *z = Z_;
+ 	}
+         inline void getVelo(double *dx, double *dy, double *dz) {
+-		*dx = dX_ * speed_; *dy = dY_ * speed_; *dz = 0.0;
++		*dx = dX_ * speed_; *dy = dY_ * speed_; 
++		//*dz = 0.0; //nasir commented
++		*dz = dZ_ * speed_; //nasir added
+ 	}
+ 	inline MobileNode* nextnode() { return link_.le_next; }
+ 	inline int base_stn() { return base_stn_;}
+@@ -150,6 +152,7 @@
+ 	inline double dZ() { return dZ_; }
+ 	inline double destX() { return destX_; }
+ 	inline double destY() { return destY_; }
++	inline double destZ() { return destZ_; } //nasir added
+ 	inline double radius() { return radius_; }
+ 	inline double getUpdateTime() { return position_update_time_; }
+ 	//inline double last_routingtime() { return last_rt_time_;}
+@@ -191,7 +194,7 @@
+         /* where are we going? */
+ 	double destX_;
+ 	double destY_;
+-
++	double destZ_; //nasir added
+ 	/*
+ 	 * for gridkeeper use only
+  	 */
+@@ -206,15 +209,19 @@
+ 	void	random_direction();
+ 	void	random_speed();
+         void    random_destination();
++	void    random_destination3d(); //nasir added
+         int	set_destination(double x, double y, double speed);
++	int	set_destination3d(double x, double y, double z, double speed);//nasir added
+ 	  
+ private:
+ 	inline int initialized() {
+ 		return (T_ && log_target_ &&
+ 			X_ >= T_->lowerX() && X_ <= T_->upperX() &&
+-			Y_ >= T_->lowerY() && Y_ <= T_->upperY());
++			Y_ >= T_->lowerY() && Y_ <= T_->upperY() &&
++			Z_ >= T_->lowerZ() && Z_ <= T_->upperZ()); //nasir added && Z_ >= T_->lowerZ() && Z_ <= T_->upperZ()
+ 	}
+ 	void		random_position();
++	void		random_position3d();//nasir added
+ 	void		bound_position();
+ 	int		random_motion_;	// is mobile
+ 
+diff -r -u -x '*~' -x '*original.c' -x '*original.h' -x '*.o' -x autoconf.h ns-2.35/indep-utils/cmu-scen-gen/setdest/setdest.cc nasir/indep-utils/cmu-scen-gen/setdest/setdest.cc
+--- ns-2.35/indep-utils/cmu-scen-gen/setdest/setdest.cc	2005-09-18 20:33:32.000000000 -0300
++++ nasir/indep-utils/cmu-scen-gen/setdest/setdest.cc	2013-11-30 02:22:52.000000000 -0400
+@@ -64,7 +64,7 @@
+ 
+ #define GOD_FORMAT	"$ns_ at %.12f \"$god_ set-dist %d %d %d\"\n"
+ #define GOD_FORMAT2	"$god_ set-dist %d %d %d\n"
+-#define NODE_FORMAT	"$ns_ at %.12f \"$node_(%d) setdest %.12f %.12f %.12f\"\n"
++#define NODE_FORMAT	"$ns_ at %.12f \"$node_(%d) setdest3d %.12f %.12f %.12f %.12f\"\n"
+ #define NODE_FORMAT2	"$node_(%d) setdest %.12f %.12f %.12f\n"
+ #define NODE_FORMAT3	"$node_(%d) set %c_ %.12f\n"
+ 
+@@ -100,15 +100,16 @@
+ /* ======================================================================
+    Global Variables
+    ====================================================================== */
+-const double	RANGE = 250.0;	// transmitter range in meters
++const double	RANGE = 500.0;//250.0;	// transmitter range in meters 
+ double		TIME = 0.0;			// my clock;
+ double		MAXTIME = 0.0;		// duration of simulation
+ 
+ double		MAXX = 0.0;			// width of space
+ double		MAXY = 0.0;			// height of space
++double 		MAXZ = 0.0;  //nasir added
+ double		PAUSE = 0.0;		// pause time
+-double		MAXSPEED = 0.0;		// max speed
+-double		MINSPEED = 0.0;		// min speed 
++double		MAXSPEED = 10.0;		// max speed
++double		MINSPEED = MAXSPEED;//0.0;		// min speed 
+ double		SS_AVGSPEED = 0.0;	// steady-state avg speed 
+ double 		KAPPA = 0.0;		// normalizing constant 
+ double 		MEAN = 0.0;			// mean for normal speed
+@@ -274,7 +275,7 @@
+ {
+ 	char ch;
+ 
+-	while ((ch = getopt(argc, argv, "v:n:s:m:M:t:P:p:x:y:i:o:")) != EOF) {       
++	while ((ch = getopt(argc, argv, "v:n:s:m:M:t:P:p:x:y:z:i:o:")) != EOF) {       
+ 
+ 		switch (ch) { 
+ 		
+@@ -288,6 +289,8 @@
+ 
+ 		case 's':
+ 			SPEEDTYPE = atoi(optarg);	
++			//printf("SPEEDTYPE 1: %d /n", SPEEDTYPE); //nasir added
++			//fprintf(stdout, "SPEEDTYPE 2: %d /n", SPEEDTYPE); //nasir added
+ 			break;
+ 
+ 		case 'm':
+@@ -296,6 +299,7 @@
+ 
+ 		case 'M':
+ 			MAXSPEED = atof(optarg);
++			MINSPEED = MAXSPEED;
+ 			break;
+ 
+ 		case 't':
+@@ -317,6 +321,9 @@
+ 		case 'y':
+ 			MAXY = atof(optarg);
+ 			break;
++		case 'z': //nasir added
++			MAXZ = atof(optarg);
++			break;
+ 
+ 		default:
+ 			usage(argv);
+@@ -324,7 +331,7 @@
+ 		}
+ 	}
+ 
+-	if(MAXX == 0.0 || MAXY == 0.0 || NODES == 0 || MAXTIME == 0.0) {
++	if(MAXX == 0.0 || MAXY == 0.0 || MAXZ == 0.0 || NODES == 0 || MAXTIME == 0.0) { //nasir added maxz = 0.0
+ 		usage(argv);
+ 		exit(1);
+ 	}
+@@ -339,8 +346,11 @@
+ 	  usage(argv);
+ 	  exit(1);
+ 	} else if (VERSION == 1 && MINSPEED > 0) {
+-	  usage(argv);
+-	  exit(1);
++	  //usage(argv);
++	  //exit(1);
++	  //MINSPEED = MAXSPEED;
++		int i = 0;
++		i++;
+ 	}
+ 
+ 
+@@ -356,8 +366,8 @@
+ 	
+ 	/* original setdest */	
+ 	if (VERSION == 1) {	
+-		fprintf(stdout, "#\n# nodes: %d, pause: %.2f, max speed: %.2f, max x: %.2f, max y: %.2f\n#\n",
+-			NODES, PAUSE, MAXSPEED, MAXX, MAXY);
++		fprintf(stdout, "#\n# nodes: %d, pause: %.2f, max speed: %.2f, max x: %.2f, max y: %.2f, max z: %.2f\n#\n",
++			NODES, PAUSE, MAXSPEED, MAXX, MAXY, MAXZ); //nasri added max z
+ 	}	
+ 
+ 	/* modified version */
+@@ -408,8 +418,8 @@
+ 		else
+ 			;
+ 	
+-		fprintf(stdout, "#\n# nodes: %d, speed type: %d, min speed: %.2f, max speed: %.2f\n# avg speed: %.2f, pause type: %d, pause: %.2f, max x: %.2f, max y: %.2f\n#\n",
+-			NODES , SPEEDTYPE, MINSPEED, MAXSPEED, SS_AVGSPEED, PAUSETYPE, PAUSE, MAXX, MAXY);
++		fprintf(stdout, "#\n# nodes: %d, speed type: %d, min speed: %.2f, max speed: %.2f\n# avg speed: %.2f, pause type: %d, pause: %.2f, max x: %.2f, max y: %.2f, max Z: %.2f\n#\n",
++			NODES , SPEEDTYPE, MINSPEED, MAXSPEED, SS_AVGSPEED, PAUSETYPE, PAUSE, MAXX, MAXY, MAXZ); //Nasir added maxz
+ 	} 	
+ 
+ 
+@@ -545,9 +555,9 @@
+ 
+ 	RandomPosition();
+ 
+-	fprintf(stdout, NODE_FORMAT3, index, 'X', position.X);
+-	fprintf(stdout, NODE_FORMAT3, index, 'Y', position.Y);
+-	fprintf(stdout, NODE_FORMAT3, index, 'Z', position.Z);
++	fprintf(stdout, NODE_FORMAT3, index, 'X', position.X); //nasir commented
++	fprintf(stdout, NODE_FORMAT3, index, 'Y', position.Y); //nasir commented
++	fprintf(stdout, NODE_FORMAT3, index, 'Z', position.Z); //nasir commented
+ 
+ 	neighbor = new Neighbor[NODES];
+ 	if(neighbor == 0) {
+@@ -569,8 +579,9 @@
+ {
+     position.X = uniform() * MAXX;
+     position.Y = uniform() * MAXY;
+-	position.Z = 0.0;
+-}
++	//position.Z = 0.0; //nasir commented
++	position.Z = /*500.00;//*/uniform() * MAXZ; //Nasir added
++}	
+ 
+ 
+ void
+@@ -578,7 +589,8 @@
+ {
+    	destination.X = uniform() * MAXX;
+    	destination.Y = uniform() * MAXY;
+-	destination.Z = 0.0;
++	//destination.Z = 0.0; //nasir commented
++	destination.Z = /*500.00;//*/uniform() * MAXZ; //nasir added
+ 	assert(destination != position);
+ }
+ 
+@@ -591,7 +603,7 @@
+ {
+ 	/* original version */
+ 	if (VERSION == 1) {
+-       	speed = uniform() * MAXSPEED;
++       	speed = MINSPEED;//uniform() * MAXSPEED; // nasir
+ 		assert(speed != 0.0);
+ 	}
+ 
+@@ -678,7 +690,8 @@
+ 		else {
+ 
+ 			destination = position;
+-			speed = 0.0;
++			speed = 0.0; // nasir commented
++			//speed = 10.0; // nasir added
+ 
+ 			/* original version */
+ 			if (VERSION == 1) {
+@@ -698,7 +711,7 @@
+ 		}
+ 
+ 		fprintf(stdout, NODE_FORMAT,
+-			TIME, index, destination.X, destination.Y, speed);
++			TIME, index, destination.X, destination.Y, destination.Z, speed);
+ 	
+ 	}
+ 
+@@ -962,16 +975,18 @@
+                                 }
+ 
+ 				if(TIME == 0.0) {
+-					fprintf(stdout, GOD_FORMAT2,
+-						i, j, D2[i*NODES + j]);
++					i = i; //nasir added
++					//fprintf(stdout, GOD_FORMAT2, //nasir commented
++					//	i, j, D2[i*NODES + j]); //nasir commented
+ #ifdef SHOW_SYMMETRIC_PAIRS
+ 					fprintf(stdout, GOD_FORMAT2,
+ 						j, i, D2[j*NODES + i]);
+ #endif
+ 				}
+ 				else {
+-					fprintf(stdout, GOD_FORMAT, 
+-						TIME, i, j, D2[i*NODES + j]);
++					i = i; //nasir added
++					//fprintf(stdout, GOD_FORMAT,  //nasir commented
++					//	TIME, i, j, D2[i*NODES + j]); //nasir commented
+ #ifdef SHOW_SYMMETRIC_PAIRS
+ 					fprintf(stdout, GOD_FORMAT, 
+ 						TIME, j, i, D2[j*NODES + i]);
+diff -r -u -x '*~' -x '*original.c' -x '*original.h' -x '*.o' -x autoconf.h ns-2.35/mobile/propagation.cc nasir/mobile/propagation.cc
+--- ns-2.35/mobile/propagation.cc	2010-03-08 01:54:52.000000000 -0400
++++ nasir/mobile/propagation.cc	2013-04-07 17:54:50.000000000 -0300
+@@ -36,7 +36,7 @@
+ */
+ 
+ #include <stdio.h>
+-
++#include <math.h>
+ #include <topography.h>
+ #include <propagation.h>
+ #include <wireless-phy.h>
+@@ -147,6 +147,48 @@
+ 	double dY = Yr - Yt;
+ 	double dZ = Zr - Zt;
+ 	double d = sqrt(dX * dX + dY * dY + dZ * dZ);
++	
++
++	//nasir added starts
++
++	//FILE * pFile;
++	//pFile = fopen ("myfile.txt","w");      
++	//fprintf (pFile, "T: %lf x: %lf, y: %lf, z: %lf\n", Scheduler::instance().clock(), dX, dY,dZ);
++	//fclose (pFile);
++
++	//FILE *fptr = NULL;
++   	// Open the file for output */
++	//fptr = fopen("testfile.txt", "w");
++	// Check if the file was opened */
++	//if (fptr != NULL)
++	//{
++        // Write data to the file */
++		//printf("T");
++        //	fprintf(fptr, "T: %lf x: %lf, y: %lf, z: %lf\n", Scheduler::instance().clock(), dX, dY,dZ);
++
++	/* Flush the buffer and close the file */
++		//fclose(fptr);
++   	//}
++	
++	
++	double time = Scheduler::instance().clock();
++
++	double integral;
++	double fractional = modf(time, &integral);
++	///printf("%lf integral, %lf fractional",integral,fractional);
++	double num = time;
++	double intpart = (int)num;
++	double decpart = num - intpart; 
++	decpart = decpart * 100;
++	double dddd = (int)decpart;
++	dddd = dddd / 100;
++	dddd = dddd + intpart;
++	//printf("%lf intpart, %lf decpart",intpart,decpart);
++	//if(intpart == dddd)
++		//if(Xr == 10.00)
++		//printf(" : %lf x: %lf, y: %lf, z: %lf\n", Scheduler::instance().clock(), Xr, Yr, Zr);//nasir added
++	//nasir added ends	
++
+ 
+ 	// get antenna gain
+ 	double Gt = t->getAntenna()->getTxGain(dX, dY, dZ, lambda);
+@@ -156,7 +198,7 @@
+ 	double Pr = Friis(t->getTxPr(), Gt, Gr, lambda, L, d);
+ 	// warning: use of `l' length character with `f' type character
+ 	//  - Sally Floyd, FreeBSD.
+-	printf("%lf: d: %lf, Pr: %e\n", Scheduler::instance().clock(), d, Pr);
++	//printf("%lf: d: %lf, Pr: %e\n", Scheduler::instance().clock(), d, Pr); //nasir commented
+ 
+ 	return Pr;
+ }
+diff -r -u -x '*~' -x '*original.c' -x '*original.h' -x '*.o' -x autoconf.h ns-2.35/mobile/topography.cc nasir/mobile/topography.cc
+--- ns-2.35/mobile/topography.cc	2003-12-23 13:36:34.000000000 -0400
++++ nasir/mobile/topography.cc	2013-04-07 18:05:38.000000000 -0300
+@@ -79,10 +79,23 @@
+ 	grid_resolution = res;	// default is 1 meter
+ 	maxX = (double) x;
+ 	maxY = (double) y;
++	//maxZ = (double) 550;//nasir added
+ 
+ 	return 0;
+ }
+ 
++int
++Topography::load_cube(int x, int y, int z, int res) //nasir added
++{
++	/* No Reason to malloc a grid */
++	fprintf(stderr, ": In load_cube \n");
++	grid_resolution = res;	// default is 1 meter
++	maxX = (double) x;
++	maxY = (double) y;
++	maxZ = (double) z;
++
++	return 0;
++}
+ 
+ int
+ Topography::load_demfile(const char *fname)
+@@ -166,6 +179,22 @@
+ 				return TCL_ERROR;
+ 			return TCL_OK;
+ 		}
++	}
++	else if(argc == 6) { //nasir added
++		if(strcmp(argv[1], "load_cube") == 0) {
++			fprintf(stderr, ": before if load_cube 3 \n");
++			if(load_cube(atoi(argv[2]), atoi(argv[3]), atoi(argv[4])))
++				return TCL_ERROR;
++			return TCL_OK;
++		}
++	}
++	else if(argc == 7) { //nasir added
++		if(strcmp(argv[1], "load_cube") == 0) {
++			fprintf(stderr, ": before if load_cube 4 \n");
++			if(load_cube(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5])))
++				return TCL_ERROR;
++			return TCL_OK;
++		}
+ 	}
+ 	return TclObject::command(argc, argv);
+ }
+diff -r -u -x '*~' -x '*original.c' -x '*original.h' -x '*.o' -x autoconf.h ns-2.35/mobile/topography.h nasir/mobile/topography.h
+--- ns-2.35/mobile/topography.h	2003-12-23 13:36:34.000000000 -0400
++++ nasir/mobile/topography.h	2013-03-29 19:43:25.000000000 -0300
+@@ -46,7 +46,7 @@
+ class Topography : public TclObject {
+ 
+ public:
+-	Topography() { maxX = maxY = grid_resolution = 0.0; grid = 0; }
++	Topography() { maxX = maxY = maxZ = grid_resolution = 0.0; grid = 0; } //nasir added maxZ;
+ 
+ 	/* List-keeper */
+ 	void updateNodesList(class MobileNode *mn, double oldX);
+@@ -55,16 +55,20 @@
+ 	double	upperX() { return maxX * grid_resolution; }
+ 	double	lowerY() { return 0.0; }
+ 	double	upperY() { return maxY * grid_resolution; }
++	double	lowerZ() { return 0.0; } //nasir added
++	double	upperZ() { return maxZ * grid_resolution; } //nasir added
+ 	double	resol() { return grid_resolution; }
+ 	double	height(double x, double y);
+ 
+ private:
+ 	virtual int command(int argc, const char*const* argv);
+ 	int	load_flatgrid(int x, int y, int res = 1);
++	int	load_cube(int x, int y, int z, int res = 1); //nasir added
+ 	int	load_demfile(const char *fname);
+ 
+ 	double	maxX;
+ 	double	maxY;
++	double  maxZ; //nasir added 
+ 
+ 	double	grid_resolution;
+ 	int*	grid;

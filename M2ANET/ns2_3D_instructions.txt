@@ -1,0 +1,36 @@
+Running ns2 simulations in 3D
+(Document rev. 1.0, March 31, 2015)
+
+As you will be modifying the ns2 source code please consult the ns2 copyright page first: http://www.isi.edu/nsnam/ns/ns-copyright.html.
+
+Read the following paragraph from http://www.isi.edu/nsnam/ns/  :
+"While we have considerable confidence in ns, ns is not a polished and finished product, but the result of an on-going effort of research and development. In particular, bugs in the software are still being discovered and corrected. Users of ns are responsible for verifying for themselves that their simulations are not invalidated by bugs."
+
+If you wish to acknowledge the use of the modified version of ns2 please include the reference to: 
+N. Mahmood, J. DeDourek and P. Pochec, "M2ANET simulation in 3D in ns2", SIMUL 2014, The Sixth International Conference on Advances in System Simulation SIMUL 2014, October 12 - 16, 2014, Nice, France, pp. 24-28.
+
+The suggested procedure is: 
+
+1) Get the ns-allinone-2.35.tar.gz file from sourceforge. 
+
+2) Build the unmodified simulator. Use the allinone procedure. There are instructions given in the file README, and additional information at http://www.isi.edu/nsnam/ns/ .  (Note: if you get the installation errors you may need to fix the source code as described in http://stackoverflow.com/questions/20924638/ns2-allinone-installation-error-in-ubuntu-13-10 )
+   
+3) Run the validation tests to verify that the build was successful.  I believe that the installation finishes with instructions on how to do this. It is important to observe that to successfully use the allinone version of ns-2, it is necessary to set up certain environment variables. 
+
+4) Obtain the ns2_3D patch.  It is attached it to this email as ns2_3D.patch
+
+5) Apply the patch. This can be done as follows: 
+    - change to the directory ns-allinone-2.35/ns-2.35 
+    - patch -p 1 < wherever-the-patch-is/ns2_3D.patch 
+
+6) Again build the (now modified) simulator as in step 2 above (i.e. run ./install again).
+(You may also run again the validation, as in step 3 above. )
+
+7) To test the 3D features run the attached demo file wireless3D.tcl. Compare the results with the wireless3D.tr trace file.
+
+8) To generate the 3D mobility scenarios you may use the updated setdest utility, e.g.
+ns-2.35/indep-utils/cmu-scen-gen/setdest/setdest -n 3 -p 0.00 -s 10.00 -t 200.00 -x 1500.00 -y 1500.00 -z 1500.00 > movement3D.mov
+Note: the speed is set to a constant.
+
+9) The network animator nam is not available in 3D. 
+
