@@ -11,7 +11,7 @@ Copy the directory "geo" in your ns2 install directory, specifically in "<instal
 
 -- Step 3 --
 There are some changes you need to do in order to integrate the new code inside the simulator.
-Go to "<install_dir>/ns-2.35/common/packet.h" and find the definition of type packet_t "typedef unsigned int packet_t", where all the packet are listed. You have to add PT_GEO to this list as shown in the next lines of code: (--> = add this additional line)
+Go to "<install_dir>/ns-2.35/common/packet.h" and find the definition of type packet_t "typedef unsigned int packet_t", where all the packet are listed. You have to add PT_GEO to this list as shown in the next lines of code (--> = add this additional line).
 
 ------------------------------------------------------------------
 -- common/packet.h --
@@ -23,7 +23,7 @@ Go to "<install_dir>/ns-2.35/common/packet.h" and find the definition of type pa
 : static packet_t       PT_NTYPE = 74; // This MUST be the LAST one
 ------------------------------------------------------------------
 
-Just below, in the same file, is the definition of "p_info" class. Inside the constructor you need to provide a name for the new GEO packet type:
+Just below, in the same file, is the definition of "p_info" class. Inside the constructor you need to provide a name for the new GEO packet type (--> = add this additional line).
 
 ------------------------------------------------------------------
 -- common/packet.h --
@@ -39,7 +39,7 @@ Just below, in the same file, is the definition of "p_info" class. Inside the co
 
 -- Step 4 --
 Now you need to do some changes in Tcl files (configuration files of the simulator also its scripting language). You need to the packet type, give the default values for its attributes and some additional parameters needed to create the wireless nodes running the GEO routing protocol.
-In "<install_dir>/ns-2.35/tcl/lib/ns-packet.tcl" locate the code below and add GEO to the list.
+In "<install_dir>/ns-2.35/tcl/lib/ns-packet.tcl" locate the code below and add GEO to the list (--> = add this additional line).
 
 -----------------------------------------------------------------
 -- tcl/lib/ns-packet.tcl --
@@ -53,7 +53,7 @@ In "<install_dir>/ns-2.35/tcl/lib/ns-packet.tcl" locate the code below and add G
 
 -- Step 5 --
 Finally you have to modify "<install_dir>/ns-allinone-2.35/tcl/lib/ns-lib.tcl" by adding the procedures for node creation. We are interested 
-in creating a wireless node with GEO as the routing protocol. Find the "create-wireless-node" procedure and add the new GEO case in the switch-case construct, as below.
+in creating a wireless node with GEO as the routing protocol. Find the "create-wireless-node" procedure and add the new GEO case in the switch-case construct, as below (--> = add this additional line).
 
 ----------------------------------------------------------------
 -- tcl/lib/ns-lib.tcl --
@@ -67,7 +67,7 @@ in creating a wireless node with GEO as the routing protocol. Find the "create-w
 : }
 ---------------------------------------------------------------
 
-Then add the "create-geo-agent" procedure in the same file as shown in the next piece of code.
+Then add the "create-geo-agent" procedure in the same file as shown in the next piece of code (copy and paste).
 
 -- tcl/lib/ns-lib.tcl --
 
@@ -89,7 +89,7 @@ Simulator instproc create-geo-agent { node } {
 }
 
 -- Step 6 --
-Now everything is in place and you only need to compile it! To do so you need to edit the Makefile file by adding the new object files inside OBJ CC variable as follows.
+Now everything is in place and you only need to compile it! To do so you need to edit the Makefile file by adding the new object files inside OBJ CC variable as follows (--> = add this additional line).
 
 -- Makefile --
 : OBJ_CC = \
