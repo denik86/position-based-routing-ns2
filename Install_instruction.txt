@@ -100,3 +100,9 @@ Now everything is in place and you only need to compile it! To do so you need to
 : $(OBJ_STL)
 
 After that you can execute make and enjoy with GEO protocol.
+This basic version of GEO protocol includes three basic forwarding algorithms:
+1. GREEDY
+2. COMPASS
+3. MOST FORWARD
+
+Good Luck
