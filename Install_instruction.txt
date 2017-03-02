@@ -99,4 +99,4 @@ Now everything is in place and you only need to compile it! To do so you need to
 : # ...
 : $(OBJ_STL)
 
-After that we can execute make and enjoy with GEO protocol.
+After that you can execute make and enjoy with GEO protocol.
